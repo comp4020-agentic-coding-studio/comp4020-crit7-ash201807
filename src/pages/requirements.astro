@@ -37,16 +37,19 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Degree Requirements — MyANU Planner</title>
   </head>
   <body>
-    <nav aria-label="site">
-      <a href="/">MCOMP Planner</a>
-      <a href="/requirements/">Requirements</a>
-      <a href="/requirements/#my-plan-heading">My Plan</a>
-      <a href="/timetable/">Timetable</a>
-      <a href="/readme/">About</a>
-    </nav>
+    <header class="site-header">
+      <nav aria-label="site" class="site-nav">
+        <a href="/" class="brand">MCOMP Planner</a>
+        <a href="/requirements/" aria-current="page">Requirements</a>
+        <a href="/requirements/#my-plan-heading">My Plan</a>
+        <a href="/timetable/">Timetable</a>
+        <a href="/readme/">About</a>
+      </nav>
+    </header>
     <main>
       <h1>{degree.name} ({degree.year})</h1>
 
@@ -56,7 +59,8 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
         )
       }
 
-      <section aria-labelledby="degree-wide-heading">
+      <section aria-labelledby="degree-wide-heading" class="card-section">
+        <span class="section-kicker">Degree-wide</span>
         <h2 id="degree-wide-heading">Degree-wide requirements</h2>
         <ul class="requirement-list">
           {
@@ -81,7 +85,8 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
         specialisations.map((specialisation) => {
           const reqs = allRequirements.filter((r) => r.specialisationId === specialisation.id);
           return (
-            <section aria-labelledby={`specialisation-${specialisation.id}-heading`}>
+            <section aria-labelledby={`specialisation-${specialisation.id}-heading`} class="card-section">
+              <span class="section-kicker">Specialisation</span>
               <h2 id={`specialisation-${specialisation.id}-heading`}>{specialisation.name}</h2>
               <ul class="requirement-list">
                 {reqs.map((requirement) => {
@@ -103,55 +108,57 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
         })
       }
 
-      <section aria-labelledby="my-plan-heading">
+      <section aria-labelledby="my-plan-heading" class="card-section">
         <h2 id="my-plan-heading">My Plan</h2>
         {plannedCourses.length === 0 && <p>No courses planned yet.</p>}
         {plannedCourses.length > 0 && (
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Code</th>
-                <th scope="col">Title</th>
-                <th scope="col">Units</th>
-                <th scope="col">Counts toward</th>
-                <th scope="col">Session</th>
-                <th scope="col">
-                  <span class="visually-hidden">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {plannedCourses.map((pc) => (
+          <div class="table-scroll">
+            <table>
+              <thead>
                 <tr>
-                  <td>{pc.courseCode}</td>
-                  <td>{pc.courseTitle}</td>
-                  <td>{pc.units}</td>
-                  <td>{pc.targetRequirementName}</td>
-                  <td>
-                    {pc.selectedSession ? (
-                      <>
-                        Session selected: {formatSessionTime(pc.selectedSession)}{" "}
-                        <a href={`/timetable/${pc.id}`}>Change session</a>
-                      </>
-                    ) : pc.hasSessions ? (
-                      <>
-                        No session selected <a href={`/timetable/${pc.id}`}>Choose session</a>
-                      </>
-                    ) : (
-                      <span>No sessions available</span>
-                    )}
-                  </td>
-                  <td>
-                    <form method="post" action="/api/planned-courses/remove">
-                      <input type="hidden" name="courseCode" value={pc.courseCode} />
-                      <input type="hidden" name="redirectTo" value="/requirements/" />
-                      <button>Remove</button>
-                    </form>
-                  </td>
+                  <th scope="col">Code</th>
+                  <th scope="col">Title</th>
+                  <th scope="col">Units</th>
+                  <th scope="col">Counts toward</th>
+                  <th scope="col">Session</th>
+                  <th scope="col">
+                    <span class="visually-hidden">Actions</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {plannedCourses.map((pc) => (
+                  <tr>
+                    <td>{pc.courseCode}</td>
+                    <td>{pc.courseTitle}</td>
+                    <td>{pc.units}</td>
+                    <td>{pc.targetRequirementName}</td>
+                    <td>
+                      {pc.selectedSession ? (
+                        <>
+                          Session selected: {formatSessionTime(pc.selectedSession)}{" "}
+                          <a href={`/timetable/${pc.id}`}>Change session</a>
+                        </>
+                      ) : pc.hasSessions ? (
+                        <>
+                          No session selected <a href={`/timetable/${pc.id}`}>Choose session</a>
+                        </>
+                      ) : (
+                        <span>No sessions available</span>
+                      )}
+                    </td>
+                    <td>
+                      <form method="post" action="/api/planned-courses/remove">
+                        <input type="hidden" name="courseCode" value={pc.courseCode} />
+                        <input type="hidden" name="redirectTo" value="/requirements/" />
+                        <button>Remove</button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </main>

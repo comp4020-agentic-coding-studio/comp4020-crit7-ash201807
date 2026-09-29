@@ -28,16 +28,19 @@ const here = `/timetable/${id}`;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Choose a session — {plannedCourse.courseCode}</title>
   </head>
   <body>
-    <nav aria-label="site">
-      <a href="/">MCOMP Planner</a>
-      <a href="/requirements/">Requirements</a>
-      <a href="/requirements/#my-plan-heading">My Plan</a>
-      <a href="/timetable/">Timetable</a>
-      <a href="/readme/">About</a>
-    </nav>
+    <header class="site-header">
+      <nav aria-label="site" class="site-nav">
+        <a href="/" class="brand">MCOMP Planner</a>
+        <a href="/requirements/">Requirements</a>
+        <a href="/requirements/#my-plan-heading">My Plan</a>
+        <a href="/timetable/" aria-current="page">Timetable</a>
+        <a href="/readme/">About</a>
+      </nav>
+    </header>
     <main>
       <p><a href="/requirements/#my-plan-heading">&larr; Back to My Plan</a></p>
       <h1>Choose a session — {plannedCourse.courseCode}</h1>
@@ -53,47 +56,49 @@ const here = `/timetable/${id}`;
 
       {
         sessions.length > 0 && (
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Session</th>
-                <th scope="col">Day &amp; time</th>
-                <th scope="col">Location</th>
-                <th scope="col">Seats</th>
-                <th scope="col">
-                  <span class="visually-hidden">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sessions.map((session) => {
-                const isSelected = selected?.session.id === session.id;
-                const full = isFull(session);
-                return (
-                  <tr data-session-id={session.id} data-full={full ? "true" : "false"}>
-                    <td>{session.sessionCode}</td>
-                    <td>{formatSessionTime(session)}</td>
-                    <td>{session.location}</td>
-                    <td>{session.enrolledCount} / {session.capacity}</td>
-                    <td>
-                      {isSelected ? (
-                        <span class="status status--complete">Selected</span>
-                      ) : full ? (
-                        <span class="status status--warning">Full</span>
-                      ) : (
-                        <form method="post" action="/api/planned-sessions">
-                          <input type="hidden" name="plannedCourseId" value={id} />
-                          <input type="hidden" name="classSessionId" value={session.id} />
-                          <input type="hidden" name="redirectTo" value={here} />
-                          <button>Select</button>
-                        </form>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Session</th>
+                  <th scope="col">Day &amp; time</th>
+                  <th scope="col">Location</th>
+                  <th scope="col">Seats</th>
+                  <th scope="col">
+                    <span class="visually-hidden">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessions.map((session) => {
+                  const isSelected = selected?.session.id === session.id;
+                  const full = isFull(session);
+                  return (
+                    <tr data-session-id={session.id} data-full={full ? "true" : "false"} class={full ? "full-row" : undefined}>
+                      <td>{session.sessionCode}</td>
+                      <td>{formatSessionTime(session)}</td>
+                      <td>{session.location}</td>
+                      <td>{session.enrolledCount} / {session.capacity}</td>
+                      <td>
+                        {isSelected ? (
+                          <span class="status status--complete">Selected</span>
+                        ) : full ? (
+                          <span class="status status--warning">Full</span>
+                        ) : (
+                          <form method="post" action="/api/planned-sessions">
+                            <input type="hidden" name="plannedCourseId" value={id} />
+                            <input type="hidden" name="classSessionId" value={session.id} />
+                            <input type="hidden" name="redirectTo" value={here} />
+                            <button>Select</button>
+                          </form>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )
       }
 

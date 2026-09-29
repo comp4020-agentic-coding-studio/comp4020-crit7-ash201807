@@ -7,26 +7,47 @@ import "../styles.css";
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A degree and timetable planner for ANU's Master of Computing." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>MCOMP Planner</title>
   </head>
   <body>
-    <nav aria-label="site">
-      <a href="/">MCOMP Planner</a>
-      <a href="/requirements/">Requirements</a>
-      <a href="/requirements/#my-plan-heading">My Plan</a>
-      <a href="/timetable/">Timetable</a>
-      <a href="/readme/">About</a>
-    </nav>
+    <header class="site-header">
+      <nav aria-label="site" class="site-nav">
+        <a href="/" class="brand" aria-current="page">MCOMP Planner</a>
+        <a href="/requirements/">Requirements</a>
+        <a href="/requirements/#my-plan-heading">My Plan</a>
+        <a href="/timetable/">Timetable</a>
+        <a href="/readme/">About</a>
+      </nav>
+    </header>
     <main>
-      <h1>Master of Computing Degree Planner</h1>
-      <p>
-        Track your progress against the degree requirements, find courses
-        that are eligible for each requirement, and build your own plan.
-      </p>
+      <section class="hero">
+        <h1>Master of Computing Degree Planner</h1>
+        <p class="lede">
+          Track your progress against the degree requirements, find courses
+          that are eligible for each requirement, and build your own plan.
+        </p>
+      </section>
       <ul class="actions">
-        <li><a href="/requirements/">Degree Requirements</a></li>
-        <li><a href="/requirements/#my-plan-heading">My Plan</a></li>
-        <li><a href="/timetable/">Timetable</a></li>
+        <li>
+          <a href="/requirements/" class="action-card">
+            <span class="action-title">Degree Requirements</span>
+            <span class="action-desc">Browse degree-wide and specialisation requirements and your progress against them.</span>
+          </a>
+        </li>
+        <li>
+          <a href="/requirements/#my-plan-heading" class="action-card">
+            <span class="action-title">My Plan</span>
+            <span class="action-desc">See the courses you've added to your plan and manage them.</span>
+          </a>
+        </li>
+        <li>
+          <a href="/timetable/" class="action-card">
+            <span class="action-title">Timetable</span>
+            <span class="action-desc">View your selected class sessions and check for clashes.</span>
+          </a>
+        </li>
       </ul>
     </main>
   </body>

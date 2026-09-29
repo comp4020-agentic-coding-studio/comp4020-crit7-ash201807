@@ -16,16 +16,21 @@ const html = (await readme.compiledContent()).replace(/(src|href)="public\//g, '
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
   </head>
   <body>
-    <nav aria-label="site">
-      <a href="/">MCOMP Planner</a>
-      <a href="/requirements/">Requirements</a>
-      <a href="/requirements/#my-plan-heading">My Plan</a>
-      <a href="/timetable/">Timetable</a>
-      <a href="/readme/">About</a>
-    </nav>
-    <main set:html={html} />
+    <header class="site-header">
+      <nav aria-label="site" class="site-nav">
+        <a href="/" class="brand">MCOMP Planner</a>
+        <a href="/requirements/">Requirements</a>
+        <a href="/requirements/#my-plan-heading">My Plan</a>
+        <a href="/timetable/">Timetable</a>
+        <a href="/readme/" aria-current="page">About</a>
+      </nav>
+    </header>
+    <main>
+      <div class="prose" set:html={html} />
+    </main>
   </body>
 </html>

@@ -29,16 +29,19 @@ const here = `/requirements/${requirement.key}`;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{requirement.name} — Degree Requirements</title>
   </head>
   <body>
-    <nav aria-label="site">
-      <a href="/">MCOMP Planner</a>
-      <a href="/requirements/">Requirements</a>
-      <a href="/requirements/#my-plan-heading">My Plan</a>
-      <a href="/timetable/">Timetable</a>
-      <a href="/readme/">About</a>
-    </nav>
+    <header class="site-header">
+      <nav aria-label="site" class="site-nav">
+        <a href="/" class="brand">MCOMP Planner</a>
+        <a href="/requirements/" aria-current="page">Requirements</a>
+        <a href="/requirements/#my-plan-heading">My Plan</a>
+        <a href="/timetable/">Timetable</a>
+        <a href="/readme/">About</a>
+      </nav>
+    </header>
     <main>
       <p><a href="/requirements/">&larr; All requirements</a></p>
       <h1>{requirement.name}</h1>
@@ -53,46 +56,50 @@ const here = `/requirements/${requirement.key}`;
         )
       }
 
-      <h2>Eligible courses</h2>
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Code</th>
-            <th scope="col">Title</th>
-            <th scope="col">Units</th>
-            <th scope="col">Level</th>
-            <th scope="col">
-              <span class="visually-hidden">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            eligibleCourses.map((course) => (
+      <section class="card-section">
+        <h2>Eligible courses</h2>
+        <div class="table-scroll">
+          <table>
+            <thead>
               <tr>
-                <td>{course.code}</td>
-                <td>{course.title}</td>
-                <td>{course.units}</td>
-                <td>{course.level}</td>
-                <td>
-                  {plannedHere.has(course.code) ? (
-                    <span>Planned for this requirement</span>
-                  ) : plannedElsewhere.has(course.code) ? (
-                    <span>Already planned (counts elsewhere)</span>
-                  ) : (
-                    <form method="post" action="/api/planned-courses">
-                      <input type="hidden" name="courseCode" value={course.code} />
-                      <input type="hidden" name="targetRequirementId" value={requirement.id} />
-                      <input type="hidden" name="redirectTo" value={here} />
-                      <button>Add to plan</button>
-                    </form>
-                  )}
-                </td>
+                <th scope="col">Code</th>
+                <th scope="col">Title</th>
+                <th scope="col">Units</th>
+                <th scope="col">Level</th>
+                <th scope="col">
+                  <span class="visually-hidden">Actions</span>
+                </th>
               </tr>
-            ))
-          }
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {
+                eligibleCourses.map((course) => (
+                  <tr>
+                    <td>{course.code}</td>
+                    <td>{course.title}</td>
+                    <td>{course.units}</td>
+                    <td>{course.level}</td>
+                    <td>
+                      {plannedHere.has(course.code) ? (
+                        <span>Planned for this requirement</span>
+                      ) : plannedElsewhere.has(course.code) ? (
+                        <span>Already planned (counts elsewhere)</span>
+                      ) : (
+                        <form method="post" action="/api/planned-courses">
+                          <input type="hidden" name="courseCode" value={course.code} />
+                          <input type="hidden" name="targetRequirementId" value={requirement.id} />
+                          <input type="hidden" name="redirectTo" value={here} />
+                          <button>Add to plan</button>
+                        </form>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
   </body>
 </html>

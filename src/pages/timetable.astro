@@ -17,16 +17,19 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Timetable — MCOMP Planner</title>
   </head>
   <body>
-    <nav aria-label="site">
-      <a href="/">MCOMP Planner</a>
-      <a href="/requirements/">Requirements</a>
-      <a href="/requirements/#my-plan-heading">My Plan</a>
-      <a href="/timetable/">Timetable</a>
-      <a href="/readme/">About</a>
-    </nav>
+    <header class="site-header">
+      <nav aria-label="site" class="site-nav">
+        <a href="/" class="brand">MCOMP Planner</a>
+        <a href="/requirements/">Requirements</a>
+        <a href="/requirements/#my-plan-heading">My Plan</a>
+        <a href="/timetable/" aria-current="page">Timetable</a>
+        <a href="/readme/">About</a>
+      </nav>
+    </header>
     <main>
       <h1>Timetable</h1>
 
@@ -54,32 +57,34 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
 
       {
         selected.length > 0 && (
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Course</th>
-                <th scope="col">Session</th>
-                <th scope="col">Day &amp; time</th>
-                <th scope="col">Location</th>
-                <th scope="col">
-                  <span class="visually-hidden">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {selected.map((s) => (
-                <tr class={conflictingPlannedCourseIds.has(s.plannedCourseId) ? "conflict" : undefined}>
-                  <td>{s.courseCode}</td>
-                  <td>{s.session.sessionCode}</td>
-                  <td>{formatSessionTime(s.session)}</td>
-                  <td>{s.session.location}</td>
-                  <td>
-                    <a href={`/timetable/${s.plannedCourseId}`}>Change session</a>
-                  </td>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Course</th>
+                  <th scope="col">Session</th>
+                  <th scope="col">Day &amp; time</th>
+                  <th scope="col">Location</th>
+                  <th scope="col">
+                    <span class="visually-hidden">Actions</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {selected.map((s) => (
+                  <tr class={conflictingPlannedCourseIds.has(s.plannedCourseId) ? "conflict" : undefined}>
+                    <td>{s.courseCode}</td>
+                    <td>{s.session.sessionCode}</td>
+                    <td>{formatSessionTime(s.session)}</td>
+                    <td>{s.session.location}</td>
+                    <td>
+                      <a href={`/timetable/${s.plannedCourseId}`}>Change session</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )
       }
 
@@ -87,7 +92,7 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
         conflicts.length > 0 && (
           <>
             <h2>Conflicts</h2>
-            <ul>
+            <ul class="conflict-list">
               {conflicts.map((c) => (
                 <li>
                   {c.a.courseCode} ({c.a.sessionCode}) overlaps {c.b.courseCode} ({c.b.sessionCode}) on{" "}
