@@ -1,0 +1,111 @@
+---
+import { db } from "../../lib/db";
+import { getPlannedCoursesDetailed, getSelectedSessions, getSessionsForCourse } from "../../lib/planner";
+import { formatSessionTime, isFull } from "../../lib/session-labels";
+import "../../styles.css";
+
+const { plannedCourseId } = Astro.params;
+const id = Number(plannedCourseId);
+if (!Number.isInteger(id)) {
+  return new Response("Not found", { status: 404 });
+}
+
+const plannedCourse = getPlannedCoursesDetailed(db).find((pc) => pc.id === id);
+if (!plannedCourse) {
+  return new Response("Not found", { status: 404 });
+}
+
+const sessions = getSessionsForCourse(db, plannedCourse.courseCode);
+const selected = getSelectedSessions(db).find((s) => s.plannedCourseId === id);
+
+const plannerStatus = Astro.url.searchParams.get("plannerStatus");
+const plannerMessage = Astro.url.searchParams.get("plannerMessage");
+const here = `/timetable/${id}`;
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Choose a session — {plannedCourse.courseCode}</title>
+  </head>
+  <body>
+    <nav aria-label="site">
+      <a href="/">MCOMP Planner</a>
+      <a href="/requirements/">Requirements</a>
+      <a href="/requirements/#my-plan-heading">My Plan</a>
+      <a href="/timetable/">Timetable</a>
+      <a href="/readme/">About</a>
+    </nav>
+    <main>
+      <p><a href="/requirements/#my-plan-heading">&larr; Back to My Plan</a></p>
+      <h1>Choose a session — {plannedCourse.courseCode}</h1>
+      <p>{plannedCourse.courseTitle}</p>
+
+      {
+        plannerMessage && (
+          <p class={`banner banner--${plannerStatus === "error" ? "error" : "success"}`}>{plannerMessage}</p>
+        )
+      }
+
+      {sessions.length === 0 && <p>No sessions available for this course yet.</p>}
+
+      {
+        sessions.length > 0 && (
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Session</th>
+                <th scope="col">Day &amp; time</th>
+                <th scope="col">Location</th>
+                <th scope="col">Seats</th>
+                <th scope="col">
+                  <span class="visually-hidden">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {sessions.map((session) => {
+                const isSelected = selected?.session.id === session.id;
+                const full = isFull(session);
+                return (
+                  <tr data-session-id={session.id} data-full={full ? "true" : "false"}>
+                    <td>{session.sessionCode}</td>
+                    <td>{formatSessionTime(session)}</td>
+                    <td>{session.location}</td>
+                    <td>{session.enrolledCount} / {session.capacity}</td>
+                    <td>
+                      {isSelected ? (
+                        <span class="status status--complete">Selected</span>
+                      ) : full ? (
+                        <span class="status status--warning">Full</span>
+                      ) : (
+                        <form method="post" action="/api/planned-sessions">
+                          <input type="hidden" name="plannedCourseId" value={id} />
+                          <input type="hidden" name="classSessionId" value={session.id} />
+                          <input type="hidden" name="redirectTo" value={here} />
+                          <button>Select</button>
+                        </form>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )
+      }
+
+      {
+        selected && (
+          <form method="post" action="/api/planned-sessions/remove">
+            <input type="hidden" name="plannedCourseId" value={id} />
+            <input type="hidden" name="redirectTo" value={here} />
+            <button>Remove selection</button>
+          </form>
+        )
+      }
+    </main>
+  </body>
+</html>

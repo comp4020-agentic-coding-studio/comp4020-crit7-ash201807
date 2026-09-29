@@ -167,3 +167,7 @@ td {
 table form {
   margin: 0;
 }
+
+tr.conflict {
+  background: #fdecea;
+}

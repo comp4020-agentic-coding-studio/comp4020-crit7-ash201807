@@ -1,5 +1,15 @@
 ---
+import { db } from "../lib/db";
+import { getSelectedSessions, getTimetableConflicts } from "../lib/planner";
+import { formatDayOfWeek, formatSessionTime } from "../lib/session-labels";
 import "../styles.css";
+
+const selected = getSelectedSessions(db);
+const conflicts = getTimetableConflicts(db);
+const conflictingPlannedCourseIds = new Set(conflicts.flatMap((c) => [c.a.plannedCourseId, c.b.plannedCourseId]));
+
+const plannerStatus = Astro.url.searchParams.get("plannerStatus");
+const plannerMessage = Astro.url.searchParams.get("plannerMessage");
 ---
 
 <!doctype html>
@@ -19,8 +29,75 @@ import "../styles.css";
     </nav>
     <main>
       <h1>Timetable</h1>
-      <p>Session and timetable planning is coming soon.</p>
-      <p><a href="/requirements/">&larr; Back to Degree Requirements</a></p>
+
+      {
+        plannerMessage && (
+          <p class={`banner banner--${plannerStatus === "error" ? "error" : "success"}`}>{plannerMessage}</p>
+        )
+      }
+
+      {
+        conflicts.length > 0 && (
+          <p class="banner banner--error">
+            {conflicts.length} timetable {conflicts.length === 1 ? "conflict" : "conflicts"} found.
+          </p>
+        )
+      }
+
+      {
+        selected.length === 0 && (
+          <p>
+            No sessions selected yet. Choose a session from your <a href="/requirements/#my-plan-heading">My Plan</a> list.
+          </p>
+        )
+      }
+
+      {
+        selected.length > 0 && (
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Course</th>
+                <th scope="col">Session</th>
+                <th scope="col">Day &amp; time</th>
+                <th scope="col">Location</th>
+                <th scope="col">
+                  <span class="visually-hidden">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {selected.map((s) => (
+                <tr class={conflictingPlannedCourseIds.has(s.plannedCourseId) ? "conflict" : undefined}>
+                  <td>{s.courseCode}</td>
+                  <td>{s.session.sessionCode}</td>
+                  <td>{formatSessionTime(s.session)}</td>
+                  <td>{s.session.location}</td>
+                  <td>
+                    <a href={`/timetable/${s.plannedCourseId}`}>Change session</a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      }
+
+      {
+        conflicts.length > 0 && (
+          <>
+            <h2>Conflicts</h2>
+            <ul>
+              {conflicts.map((c) => (
+                <li>
+                  {c.a.courseCode} ({c.a.sessionCode}) overlaps {c.b.courseCode} ({c.b.sessionCode}) on{" "}
+                  {formatDayOfWeek(c.dayOfWeek)}
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
     </main>
   </body>
 </html>

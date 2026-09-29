@@ -5,9 +5,12 @@ import {
   getPlannedCoursesDetailed,
   getRequirementProgress,
   getRequirementsForDegree,
+  getSelectedSessions,
+  getSessionsForCourse,
   getSpecialisationsForDegree,
 } from "../lib/planner";
 import { describeProgress, describeRule, statusLabel, statusOf } from "../lib/requirement-labels";
+import { formatSessionTime } from "../lib/session-labels";
 import "../styles.css";
 
 const degree = getDegree(db);
@@ -18,7 +21,12 @@ const allRequirements = getRequirementsForDegree(db, degree.id);
 const degreeWide = allRequirements.filter((r) => r.specialisationId === null);
 const progress = new Map(allRequirements.map((r) => [r.id, getRequirementProgress(db, r)]));
 
-const plannedCourses = getPlannedCoursesDetailed(db);
+const selectedSessions = getSelectedSessions(db);
+const plannedCourses = getPlannedCoursesDetailed(db).map((pc) => ({
+  ...pc,
+  selectedSession: selectedSessions.find((s) => s.plannedCourseId === pc.id)?.session,
+  hasSessions: getSessionsForCourse(db, pc.courseCode).length > 0,
+}));
 
 const plannerStatus = Astro.url.searchParams.get("plannerStatus");
 const plannerMessage = Astro.url.searchParams.get("plannerMessage");
@@ -106,6 +114,7 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
                 <th scope="col">Title</th>
                 <th scope="col">Units</th>
                 <th scope="col">Counts toward</th>
+                <th scope="col">Session</th>
                 <th scope="col">
                   <span class="visually-hidden">Actions</span>
                 </th>
@@ -118,6 +127,20 @@ const plannerMessage = Astro.url.searchParams.get("plannerMessage");
                   <td>{pc.courseTitle}</td>
                   <td>{pc.units}</td>
                   <td>{pc.targetRequirementName}</td>
+                  <td>
+                    {pc.selectedSession ? (
+                      <>
+                        Session selected: {formatSessionTime(pc.selectedSession)}{" "}
+                        <a href={`/timetable/${pc.id}`}>Change session</a>
+                      </>
+                    ) : pc.hasSessions ? (
+                      <>
+                        No session selected <a href={`/timetable/${pc.id}`}>Choose session</a>
+                      </>
+                    ) : (
+                      <span>No sessions available</span>
+                    )}
+                  </td>
                   <td>
                     <form method="post" action="/api/planned-courses/remove">
                       <input type="hidden" name="courseCode" value={pc.courseCode} />
