@@ -57,6 +57,14 @@ export function getRequirementsForSpecialisation(db: typeof Db, specialisationId
   return db.select().from(requirements).where(eq(requirements.specialisationId, specialisationId)).all();
 }
 
+export function getRequirementByKey(db: typeof Db, degreeId: number, key: string): Requirement | undefined {
+  return db
+    .select()
+    .from(requirements)
+    .where(and(eq(requirements.degreeId, degreeId), eq(requirements.key, key)))
+    .get();
+}
+
 export function getSpecialisationsForDegree(db: typeof Db, degreeId: number): Specialisation[] {
   return db.select().from(specialisations).where(eq(specialisations.degreeId, degreeId)).all();
 }
@@ -214,6 +222,33 @@ export function addPlannedCourse(
   }
 
   return db.insert(plannedCourses).values({ courseCode, targetRequirementId }).returning().get();
+}
+
+export type PlannedCourseDetail = {
+  id: number;
+  courseCode: string;
+  courseTitle: string;
+  units: number;
+  targetRequirementId: number;
+  targetRequirementName: string;
+};
+
+// For the "My Plan" view: a planned course alongside the course/requirement
+// names it'd otherwise take a join in the page to look up.
+export function getPlannedCoursesDetailed(db: typeof Db): PlannedCourseDetail[] {
+  return db
+    .select({
+      id: plannedCourses.id,
+      courseCode: plannedCourses.courseCode,
+      courseTitle: courses.title,
+      units: courses.units,
+      targetRequirementId: plannedCourses.targetRequirementId,
+      targetRequirementName: requirements.name,
+    })
+    .from(plannedCourses)
+    .innerJoin(courses, eq(plannedCourses.courseCode, courses.code))
+    .innerJoin(requirements, eq(plannedCourses.targetRequirementId, requirements.id))
+    .all();
 }
 
 export function removePlannedCourse(db: typeof Db, courseCode: string): void {

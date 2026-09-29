@@ -1,0 +1,98 @@
+---
+import { db } from "../../lib/db";
+import { getDegree, getEligibleCoursesForRequirement, getPlannedCourses, getRequirementByKey, getRequirementProgress } from "../../lib/planner";
+import { describeProgress, describeRule, statusLabel, statusOf } from "../../lib/requirement-labels";
+import "../../styles.css";
+
+const degree = getDegree(db);
+if (!degree) throw new Error("degree not seeded");
+
+const { key } = Astro.params;
+const requirement = key ? getRequirementByKey(db, degree.id, key) : undefined;
+if (!requirement) {
+  return new Response("Requirement not found", { status: 404 });
+}
+
+const progress = getRequirementProgress(db, requirement);
+const status = statusOf(progress);
+const eligibleCourses = getEligibleCoursesForRequirement(db, requirement.id);
+const plannedElsewhere = new Set(getPlannedCourses(db).map((p) => p.courseCode));
+const plannedHere = new Set(progress.plannedCourses.map((p) => p.code));
+
+const plannerStatus = Astro.url.searchParams.get("plannerStatus");
+const plannerMessage = Astro.url.searchParams.get("plannerMessage");
+const here = `/requirements/${requirement.key}`;
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{requirement.name} — Degree Requirements</title>
+  </head>
+  <body>
+    <nav aria-label="site">
+      <a href="/">MCOMP Planner</a>
+      <a href="/requirements/">Requirements</a>
+      <a href="/requirements/#my-plan-heading">My Plan</a>
+      <a href="/timetable/">Timetable</a>
+      <a href="/readme/">About</a>
+    </nav>
+    <main>
+      <p><a href="/requirements/">&larr; All requirements</a></p>
+      <h1>{requirement.name}</h1>
+      <p>
+        <span class={`status status--${status}`}>{statusLabel(status)}</span>
+        — {describeRule(progress)} — {describeProgress(progress)}
+      </p>
+
+      {
+        plannerMessage && (
+          <p class={`banner banner--${plannerStatus === "error" ? "error" : "success"}`}>{plannerMessage}</p>
+        )
+      }
+
+      <h2>Eligible courses</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Code</th>
+            <th scope="col">Title</th>
+            <th scope="col">Units</th>
+            <th scope="col">Level</th>
+            <th scope="col">
+              <span class="visually-hidden">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            eligibleCourses.map((course) => (
+              <tr>
+                <td>{course.code}</td>
+                <td>{course.title}</td>
+                <td>{course.units}</td>
+                <td>{course.level}</td>
+                <td>
+                  {plannedHere.has(course.code) ? (
+                    <span>Planned for this requirement</span>
+                  ) : plannedElsewhere.has(course.code) ? (
+                    <span>Already planned (counts elsewhere)</span>
+                  ) : (
+                    <form method="post" action="/api/planned-courses">
+                      <input type="hidden" name="courseCode" value={course.code} />
+                      <input type="hidden" name="targetRequirementId" value={requirement.id} />
+                      <input type="hidden" name="redirectTo" value={here} />
+                      <button>Add to plan</button>
+                    </form>
+                  )}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </main>
+  </body>
+</html>

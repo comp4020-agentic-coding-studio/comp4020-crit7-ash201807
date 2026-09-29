@@ -5,6 +5,7 @@ import { desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { type Message, messages } from "./schema";
+import { seedPlannerData } from "./seed";
 
 // One SQLite file is the app's whole persistent state. In production
 // fly.toml points DATABASE_PATH at the machine's volume (/data), which is
@@ -23,6 +24,10 @@ export const db = drizzle(client);
 // run them from. The flow: edit src/lib/schema.ts, `pnpm db:generate`,
 // commit the migration it writes to drizzle/.
 migrate(db, { migrationsFolder: "./drizzle" });
+
+// Idempotent: safe to run on every boot alongside the migration above, and
+// required for it — without it the planner tables exist but stay empty.
+seedPlannerData(db);
 
 export type { Message };
 

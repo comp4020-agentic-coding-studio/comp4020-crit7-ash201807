@@ -1,0 +1,136 @@
+---
+import { db } from "../lib/db";
+import {
+  getDegree,
+  getPlannedCoursesDetailed,
+  getRequirementProgress,
+  getRequirementsForDegree,
+  getSpecialisationsForDegree,
+} from "../lib/planner";
+import { describeProgress, describeRule, statusLabel, statusOf } from "../lib/requirement-labels";
+import "../styles.css";
+
+const degree = getDegree(db);
+if (!degree) throw new Error("degree not seeded");
+
+const specialisations = getSpecialisationsForDegree(db, degree.id);
+const allRequirements = getRequirementsForDegree(db, degree.id);
+const degreeWide = allRequirements.filter((r) => r.specialisationId === null);
+const progress = new Map(allRequirements.map((r) => [r.id, getRequirementProgress(db, r)]));
+
+const plannedCourses = getPlannedCoursesDetailed(db);
+
+const plannerStatus = Astro.url.searchParams.get("plannerStatus");
+const plannerMessage = Astro.url.searchParams.get("plannerMessage");
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Degree Requirements — MyANU Planner</title>
+  </head>
+  <body>
+    <nav aria-label="site">
+      <a href="/">MCOMP Planner</a>
+      <a href="/requirements/">Requirements</a>
+      <a href="/requirements/#my-plan-heading">My Plan</a>
+      <a href="/timetable/">Timetable</a>
+      <a href="/readme/">About</a>
+    </nav>
+    <main>
+      <h1>{degree.name} ({degree.year})</h1>
+
+      {
+        plannerMessage && (
+          <p class={`banner banner--${plannerStatus === "error" ? "error" : "success"}`}>{plannerMessage}</p>
+        )
+      }
+
+      <section aria-labelledby="degree-wide-heading">
+        <h2 id="degree-wide-heading">Degree-wide requirements</h2>
+        <ul class="requirement-list">
+          {
+            degreeWide.map((requirement) => {
+              const p = progress.get(requirement.id)!;
+              const status = statusOf(p);
+              return (
+                <li class={`requirement requirement--${status}`}>
+                  <a href={`/requirements/${requirement.key}`}>{requirement.name}</a>
+                  <span class={`status status--${status}`}>{statusLabel(status)}</span>
+                  <p class="requirement-meta">
+                    {describeRule(p)} — {describeProgress(p)}
+                  </p>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </section>
+
+      {
+        specialisations.map((specialisation) => {
+          const reqs = allRequirements.filter((r) => r.specialisationId === specialisation.id);
+          return (
+            <section aria-labelledby={`specialisation-${specialisation.id}-heading`}>
+              <h2 id={`specialisation-${specialisation.id}-heading`}>{specialisation.name}</h2>
+              <ul class="requirement-list">
+                {reqs.map((requirement) => {
+                  const p = progress.get(requirement.id)!;
+                  const status = statusOf(p);
+                  return (
+                    <li class={`requirement requirement--${status}`}>
+                      <a href={`/requirements/${requirement.key}`}>{requirement.name}</a>
+                      <span class={`status status--${status}`}>{statusLabel(status)}</span>
+                      <p class="requirement-meta">
+                        {describeRule(p)} — {describeProgress(p)}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })
+      }
+
+      <section aria-labelledby="my-plan-heading">
+        <h2 id="my-plan-heading">My Plan</h2>
+        {plannedCourses.length === 0 && <p>No courses planned yet.</p>}
+        {plannedCourses.length > 0 && (
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Title</th>
+                <th scope="col">Units</th>
+                <th scope="col">Counts toward</th>
+                <th scope="col">
+                  <span class="visually-hidden">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {plannedCourses.map((pc) => (
+                <tr>
+                  <td>{pc.courseCode}</td>
+                  <td>{pc.courseTitle}</td>
+                  <td>{pc.units}</td>
+                  <td>{pc.targetRequirementName}</td>
+                  <td>
+                    <form method="post" action="/api/planned-courses/remove">
+                      <input type="hidden" name="courseCode" value={pc.courseCode} />
+                      <input type="hidden" name="redirectTo" value="/requirements/" />
+                      <button>Remove</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    </main>
+  </body>
+</html>

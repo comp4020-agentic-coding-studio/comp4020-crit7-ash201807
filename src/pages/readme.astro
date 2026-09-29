@@ -20,7 +20,10 @@ const html = (await readme.compiledContent()).replace(/(src|href)="public\//g, '
   </head>
   <body>
     <nav aria-label="site">
-      <a href="/">Guestbook</a>
+      <a href="/">MCOMP Planner</a>
+      <a href="/requirements/">Requirements</a>
+      <a href="/requirements/#my-plan-heading">My Plan</a>
+      <a href="/timetable/">Timetable</a>
       <a href="/readme/">About</a>
     </nav>
     <main set:html={html} />
